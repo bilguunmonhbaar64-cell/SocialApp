@@ -6,6 +6,7 @@ const { env } = require("./config/env");
 const authRoutes = require("./routes/authRoutes");
 const healthRoutes = require("./routes/healthRoutes");
 const postRoutes = require("./routes/postRoutes");
+const storyRoutes = require("./routes/storyRoutes");
 const { errorHandler, notFound } = require("./middlewares/errorHandler");
 
 const app = express();
@@ -28,7 +29,7 @@ const buildCorsOptions = (allowedOrigins) => {
 
 app.use(helmet());
 app.use(cors(buildCorsOptions(env.CLIENT_ORIGIN)));
-app.use(express.json({ limit: "2mb" }));
+app.use(express.json({ limit: "10mb" }));
 
 if (env.NODE_ENV !== "test") {
   app.use(morgan("dev"));
@@ -41,6 +42,7 @@ app.get("/", (_req, res) => {
 app.use("/health", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/posts", postRoutes);
+app.use("/api/stories", storyRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

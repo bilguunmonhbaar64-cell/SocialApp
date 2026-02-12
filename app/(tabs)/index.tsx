@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -12,13 +12,36 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { loginUser } from "../../services/api";
+import { getValidToken, loginUser } from "../../services/api";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const bootstrapSession = async () => {
+      const token = await getValidToken();
+      if (!mounted) return;
+
+      if (token) {
+        router.replace("/(dashboard)");
+        return;
+      }
+
+      setCheckingSession(false);
+    };
+
+    bootstrapSession();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -38,6 +61,21 @@ export default function LoginScreen() {
     console.log("[LOGIN] Success! Navigating to dashboard...", data?.user);
     router.replace("/(dashboard)");
   };
+
+  if (checkingSession) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "#ffffff",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <ActivityIndicator size="large" color="#4f46e5" />
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: "#ffffff" }}>

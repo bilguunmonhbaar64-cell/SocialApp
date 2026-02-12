@@ -212,9 +212,9 @@ export default function ActivityScreen() {
       {/* Header */}
       <View
         style={{
-          paddingTop: insets.top + 8,
+          paddingTop: insets.top + 12,
           paddingHorizontal: 20,
-          paddingBottom: 16,
+          paddingBottom: 20,
           borderBottomWidth: 1,
           borderBottomColor: "#f3f4f6",
         }}

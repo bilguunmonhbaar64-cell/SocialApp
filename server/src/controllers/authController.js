@@ -53,8 +53,58 @@ const getMe = async (req, res) => {
   return res.status(200).json({ user: req.user.toJSON() });
 };
 
+const updateProfile = async (req, res, next) => {
+  try {
+    const { name, bio, avatarUrl } = req.body;
+    const user = req.user;
+
+    if (name !== undefined) user.name = name;
+    if (bio !== undefined) user.bio = bio;
+    if (avatarUrl !== undefined) user.avatarUrl = avatarUrl;
+
+    await user.save();
+    return res.status(200).json({ user: user.toJSON() });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const user = req.user;
+
+    const match = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!match) {
+      throw createHttpError(400, "Current password is incorrect");
+    }
+
+    user.passwordHash = await bcrypt.hash(newPassword, 12);
+    await user.save();
+    return res.status(200).json({ message: "Password updated" });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const deleteAccount = async (req, res, next) => {
+  try {
+    const Post = require("../models/Post");
+    // Remove user's posts
+    await Post.deleteMany({ author: req.user._id });
+    // Remove the user
+    await User.deleteOne({ _id: req.user._id });
+    return res.status(200).json({ message: "Account deleted" });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
   register,
   login,
   getMe,
+  updateProfile,
+  changePassword,
+  deleteAccount,
 };

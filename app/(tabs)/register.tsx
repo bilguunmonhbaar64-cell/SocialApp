@@ -38,7 +38,7 @@ export default function RegisterScreen() {
     }
 
     setLoading(true);
-    const { data, error } = await registerUser(fullName, email, password);
+    const { error } = await registerUser(fullName, email, password);
     setLoading(false);
 
     if (error) {
@@ -46,8 +46,8 @@ export default function RegisterScreen() {
       return;
     }
 
-    Alert.alert("Success", "Account created successfully! Please sign in.", [
-      { text: "OK", onPress: () => router.replace("/(tabs)") },
+    Alert.alert("Success", "Account created successfully!", [
+      { text: "Continue", onPress: () => router.replace("/(dashboard)") },
     ]);
   };
 

@@ -109,20 +109,20 @@ export default function ExploreScreen() {
       <View
         style={{
           backgroundColor: "#fff",
-          paddingTop: insets.top,
+          paddingTop: insets.top + 6,
           paddingHorizontal: 24,
-          paddingBottom: 16,
+          paddingBottom: 20,
           borderBottomWidth: 1,
           borderBottomColor: "#f3f4f6",
         }}
       >
         <Text
           style={{
-            fontSize: 26,
+            fontSize: 28,
             fontWeight: "bold",
             color: "#111827",
             letterSpacing: -0.5,
-            marginBottom: 16,
+            marginBottom: 18,
           }}
         >
           Explore

@@ -7,6 +7,11 @@ const {
   updateProfile,
   changePassword,
   deleteAccount,
+  searchUsers,
+  getUserProfile,
+  toggleFollow,
+  getFollowers,
+  getFollowing,
 } = require("../controllers/authController");
 const { requireAuth } = require("../middlewares/auth");
 const { validateRequest } = require("../utils/validateRequest");
@@ -83,5 +88,18 @@ router.put(
 );
 
 router.delete("/me", requireAuth, deleteAccount);
+
+// Search users
+router.get("/users/search", requireAuth, searchUsers);
+
+// Public profile
+router.get("/users/:userId", requireAuth, getUserProfile);
+
+// Follow / unfollow
+router.post("/users/:userId/follow", requireAuth, toggleFollow);
+
+// Followers & following lists
+router.get("/users/:userId/followers", requireAuth, getFollowers);
+router.get("/users/:userId/following", requireAuth, getFollowing);
 
 module.exports = router;

@@ -311,6 +311,8 @@ export interface UserProfile {
   avatarUrl: string;
   bio: string;
   createdAt: string;
+  followersCount: number;
+  followingCount: number;
 }
 
 export async function getMe(): Promise<ApiResponse<UserProfile>> {
@@ -518,6 +520,244 @@ export async function deleteStory(
       return { error: json.message || "Failed to delete story" };
     }
     return { data: json };
+  } catch (err: any) {
+    return { error: err.message || "Network error" };
+  }
+}
+
+// ─── Search Users ───────────────────────────────────────────────────────
+export interface SearchUserResult {
+  id: string;
+  name: string;
+  avatarUrl: string;
+  bio: string;
+}
+
+export async function searchUsers(
+  query: string,
+): Promise<ApiResponse<SearchUserResult[]>> {
+  try {
+    const token = await getValidToken();
+    if (!token) return { error: "Session expired. Please sign in again." };
+
+    const response = await fetch(
+      `${BASE_URL}/api/auth/users/search?q=${encodeURIComponent(query)}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
+
+    const json = await response.json();
+    if (!response.ok) {
+      return { error: json.message || "Search failed" };
+    }
+    return { data: json.users };
+  } catch (err: any) {
+    return { error: err.message || "Network error" };
+  }
+}
+
+// ─── Get User Public Profile ────────────────────────────────────────────
+export interface PublicUserProfile {
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl: string;
+  bio: string;
+  createdAt: string;
+  followersCount: number;
+  followingCount: number;
+}
+
+export interface UserProfileResponse {
+  user: PublicUserProfile;
+  posts: Post[];
+  postCount: number;
+  isFollowing: boolean;
+}
+
+export async function getUserProfile(
+  userId: string,
+): Promise<ApiResponse<UserProfileResponse>> {
+  try {
+    const token = await getValidToken();
+    if (!token) return { error: "Session expired. Please sign in again." };
+
+    const response = await fetch(`${BASE_URL}/api/auth/users/${userId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const json = await response.json();
+    if (!response.ok) {
+      return { error: json.message || "Failed to load profile" };
+    }
+    return { data: json };
+  } catch (err: any) {
+    return { error: err.message || "Network error" };
+  }
+}
+
+// ─── Follow System ──────────────────────────────────────────────────────
+export async function toggleFollow(
+  userId: string,
+): Promise<ApiResponse<{ isFollowing: boolean; followersCount: number }>> {
+  try {
+    const token = await getValidToken();
+    if (!token) return { error: "Session expired. Please sign in again." };
+
+    const response = await fetch(
+      `${BASE_URL}/api/auth/users/${userId}/follow`,
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
+
+    const json = await response.json();
+    if (!response.ok) {
+      return { error: json.message || "Failed to follow/unfollow" };
+    }
+    return { data: json };
+  } catch (err: any) {
+    return { error: err.message || "Network error" };
+  }
+}
+
+export async function getFollowersList(
+  userId: string,
+): Promise<ApiResponse<SearchUserResult[]>> {
+  try {
+    const token = await getValidToken();
+    if (!token) return { error: "Session expired. Please sign in again." };
+
+    const response = await fetch(
+      `${BASE_URL}/api/auth/users/${userId}/followers`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
+
+    const json = await response.json();
+    if (!response.ok) {
+      return { error: json.message || "Failed to load followers" };
+    }
+    return { data: json.users };
+  } catch (err: any) {
+    return { error: err.message || "Network error" };
+  }
+}
+
+export async function getFollowingList(
+  userId: string,
+): Promise<ApiResponse<SearchUserResult[]>> {
+  try {
+    const token = await getValidToken();
+    if (!token) return { error: "Session expired. Please sign in again." };
+
+    const response = await fetch(
+      `${BASE_URL}/api/auth/users/${userId}/following`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
+
+    const json = await response.json();
+    if (!response.ok) {
+      return { error: json.message || "Failed to load following" };
+    }
+    return { data: json.users };
+  } catch (err: any) {
+    return { error: err.message || "Network error" };
+  }
+}
+
+// ─── Messaging ──────────────────────────────────────────────────────────
+export interface ChatMessage {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  text: string;
+  read: boolean;
+  createdAt: string;
+}
+
+export interface ConversationItem {
+  user: SearchUserResult;
+  lastMessage: {
+    id: string;
+    text: string;
+    senderId: string;
+    createdAt: string;
+  };
+  unreadCount: number;
+}
+
+export async function getConversations(): Promise<
+  ApiResponse<ConversationItem[]>
+> {
+  try {
+    const token = await getValidToken();
+    if (!token) return { error: "Session expired. Please sign in again." };
+
+    const response = await fetch(`${BASE_URL}/api/messages/conversations`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const json = await response.json();
+    if (!response.ok) {
+      return { error: json.message || "Failed to load conversations" };
+    }
+    return { data: json.conversations };
+  } catch (err: any) {
+    return { error: err.message || "Network error" };
+  }
+}
+
+export async function getMessages(
+  userId: string,
+): Promise<
+  ApiResponse<{ messages: ChatMessage[]; otherUser: PublicUserProfile }>
+> {
+  try {
+    const token = await getValidToken();
+    if (!token) return { error: "Session expired. Please sign in again." };
+
+    const response = await fetch(`${BASE_URL}/api/messages/${userId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const json = await response.json();
+    if (!response.ok) {
+      return { error: json.message || "Failed to load messages" };
+    }
+    return { data: json };
+  } catch (err: any) {
+    return { error: err.message || "Network error" };
+  }
+}
+
+export async function sendMessage(
+  userId: string,
+  text: string,
+): Promise<ApiResponse<ChatMessage>> {
+  try {
+    const token = await getValidToken();
+    if (!token) return { error: "Session expired. Please sign in again." };
+
+    const response = await fetch(`${BASE_URL}/api/messages/${userId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ text }),
+    });
+
+    const json = await response.json();
+    if (!response.ok) {
+      return { error: json.message || "Failed to send message" };
+    }
+    return { data: json.message };
   } catch (err: any) {
     return { error: err.message || "Network error" };
   }

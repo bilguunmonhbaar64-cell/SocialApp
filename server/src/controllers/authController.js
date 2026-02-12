@@ -50,7 +50,11 @@ const login = async (req, res, next) => {
 };
 
 const getMe = async (req, res) => {
-  return res.status(200).json({ user: req.user.toJSON() });
+  const user = req.user;
+  const json = user.toJSON();
+  json.followersCount = user.followers ? user.followers.length : 0;
+  json.followingCount = user.following ? user.following.length : 0;
+  return res.status(200).json({ user: json });
 };
 
 const updateProfile = async (req, res, next) => {
@@ -100,6 +104,159 @@ const deleteAccount = async (req, res, next) => {
   }
 };
 
+const searchUsers = async (req, res, next) => {
+  try {
+    const { q } = req.query;
+    if (!q || q.trim().length < 1) {
+      return res.status(200).json({ users: [] });
+    }
+
+    const regex = new RegExp(q.trim(), "i");
+    const users = await User.find({
+      $or: [{ name: regex }, { email: regex }],
+    })
+      .select("name avatarUrl bio")
+      .limit(20)
+      .lean();
+
+    const result = users.map((u) => ({
+      id: u._id.toString(),
+      name: u.name,
+      avatarUrl: u.avatarUrl || "",
+      bio: u.bio || "",
+    }));
+
+    return res.status(200).json({ users: result });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const getUserProfile = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    if (!user) {
+      throw createHttpError(404, "User not found");
+    }
+
+    const Post = require("../models/Post");
+    const posts = await Post.find({ author: user._id })
+      .sort({ createdAt: -1 })
+      .populate("author", "name avatarUrl")
+      .populate("comments.author", "name avatarUrl");
+
+    const postCount = posts.length;
+    const followersCount = user.followers ? user.followers.length : 0;
+    const followingCount = user.following ? user.following.length : 0;
+    const isFollowing = user.followers
+      ? user.followers.some((id) => id.toString() === req.user._id.toString())
+      : false;
+
+    const json = user.toJSON();
+    json.followersCount = followersCount;
+    json.followingCount = followingCount;
+
+    return res.status(200).json({
+      user: json,
+      posts,
+      postCount,
+      isFollowing,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const toggleFollow = async (req, res, next) => {
+  try {
+    const currentUserId = req.user._id;
+    const targetUserId = req.params.userId;
+
+    if (currentUserId.toString() === targetUserId) {
+      throw createHttpError(400, "Cannot follow yourself");
+    }
+
+    const targetUser = await User.findById(targetUserId);
+    if (!targetUser) {
+      throw createHttpError(404, "User not found");
+    }
+
+    const currentUser = await User.findById(currentUserId);
+    const isFollowing = targetUser.followers.some(
+      (id) => id.toString() === currentUserId.toString(),
+    );
+
+    if (isFollowing) {
+      // Unfollow
+      targetUser.followers = targetUser.followers.filter(
+        (id) => id.toString() !== currentUserId.toString(),
+      );
+      currentUser.following = currentUser.following.filter(
+        (id) => id.toString() !== targetUserId,
+      );
+    } else {
+      // Follow
+      targetUser.followers.push(currentUserId);
+      currentUser.following.push(targetUserId);
+    }
+
+    await Promise.all([targetUser.save(), currentUser.save()]);
+
+    return res.status(200).json({
+      isFollowing: !isFollowing,
+      followersCount: targetUser.followers.length,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const getFollowers = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.userId).populate(
+      "followers",
+      "name avatarUrl bio",
+    );
+    if (!user) {
+      throw createHttpError(404, "User not found");
+    }
+
+    const followers = (user.followers || []).map((u) => ({
+      id: u._id.toString(),
+      name: u.name,
+      avatarUrl: u.avatarUrl || "",
+      bio: u.bio || "",
+    }));
+
+    return res.status(200).json({ users: followers });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const getFollowing = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.userId).populate(
+      "following",
+      "name avatarUrl bio",
+    );
+    if (!user) {
+      throw createHttpError(404, "User not found");
+    }
+
+    const following = (user.following || []).map((u) => ({
+      id: u._id.toString(),
+      name: u.name,
+      avatarUrl: u.avatarUrl || "",
+      bio: u.bio || "",
+    }));
+
+    return res.status(200).json({ users: following });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -107,4 +264,9 @@ module.exports = {
   updateProfile,
   changePassword,
   deleteAccount,
+  searchUsers,
+  getUserProfile,
+  toggleFollow,
+  getFollowers,
+  getFollowing,
 };

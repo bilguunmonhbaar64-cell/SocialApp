@@ -1,9 +1,24 @@
 import { Ionicons } from "@expo/vector-icons";
-import { router, Tabs } from "expo-router";
+import {
+  BottomTabNavigationEventMap,
+  BottomTabNavigationOptions,
+  createBottomTabNavigator,
+} from "@react-navigation/bottom-tabs";
+import { ParamListBase, TabNavigationState } from "@react-navigation/native";
+import { router, withLayoutContext } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Platform, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { getValidToken } from "../../services/api";
+
+const { Navigator } = createBottomTabNavigator();
+
+const DashboardTabs = withLayoutContext<
+  BottomTabNavigationOptions,
+  typeof Navigator,
+  TabNavigationState<ParamListBase>,
+  BottomTabNavigationEventMap
+>(Navigator, undefined, true);
 
 export default function DashboardLayout() {
   const insets = useSafeAreaInsets();
@@ -48,12 +63,15 @@ export default function DashboardLayout() {
   }
 
   return (
-    <Tabs
+    <DashboardTabs
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: "#4f46e5",
         tabBarInactiveTintColor: "#9ca3af",
         tabBarShowLabel: false,
+        tabBarItemStyle: {
+          flex: 1,
+        },
         tabBarStyle: {
           backgroundColor: "#ffffff",
           borderTopWidth: 1,
@@ -66,7 +84,7 @@ export default function DashboardLayout() {
         },
       }}
     >
-      <Tabs.Screen
+      <DashboardTabs.Screen
         name="index"
         options={{
           title: "Home",
@@ -79,20 +97,20 @@ export default function DashboardLayout() {
           ),
         }}
       />
-      <Tabs.Screen
+      <DashboardTabs.Screen
         name="videos"
         options={{
-          title: "Explore",
+          title: "Reels",
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
-              name={focused ? "compass" : "compass-outline"}
+              name={focused ? "play-circle" : "play-circle-outline"}
               size={22}
               color={color}
             />
           ),
         }}
       />
-      <Tabs.Screen
+      <DashboardTabs.Screen
         name="friends"
         options={{
           title: "Create",
@@ -117,11 +135,10 @@ export default function DashboardLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="marketplace"
+      <DashboardTabs.Screen
+        name="notifications"
         options={{
-          title: "Activity",
-          href: null,
+          title: "Notifications",
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? "heart" : "heart-outline"}
@@ -131,20 +148,7 @@ export default function DashboardLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="notifications"
-        options={{
-          title: "Notifications",
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? "notifications" : "notifications-outline"}
-              size={22}
-              color={color}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
+      <DashboardTabs.Screen
         name="profile"
         options={{
           title: "Profile",
@@ -157,6 +161,6 @@ export default function DashboardLayout() {
           ),
         }}
       />
-    </Tabs>
+    </DashboardTabs>
   );
 }

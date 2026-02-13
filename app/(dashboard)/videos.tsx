@@ -1,386 +1,420 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Dimensions,
   FlatList,
   Image,
-  ScrollView,
+  StatusBar,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
+  ViewToken,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const GRID_GAP = 12;
-const GRID_COLS = 2;
-const GRID_ITEM = (SCREEN_WIDTH - 24 * 2 - GRID_GAP) / GRID_COLS;
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
-const CATEGORIES = [
-  { id: "all", label: "All", icon: "grid-outline" },
-  { id: "travel", label: "Travel", icon: "airplane-outline" },
-  { id: "food", label: "Food", icon: "restaurant-outline" },
-  { id: "art", label: "Art", icon: "color-palette-outline" },
-  { id: "fitness", label: "Fitness", icon: "barbell-outline" },
-  { id: "music", label: "Music", icon: "musical-notes-outline" },
-];
-
-const EXPLORE_ITEMS = [
+const REELS = [
   {
     id: "1",
-    image: "https://picsum.photos/400/500?random=60",
-    likes: "2.4K",
-    type: "photo",
+    image: "https://picsum.photos/1080/1920?random=101",
+    user: "munkhjin_mn",
+    collab: "travelMongolia",
+    avatar: "https://i.pravatar.cc/150?img=32",
+    caption: "Exploring the hidden valleys of Khentii 🏔️✨",
+    music: "Mongolian Breeze · Nomadic Beats",
+    likes: "2.7M",
+    comments: "6,043",
+    reposts: "62.7K",
+    shares: "831K",
+    saves: "36.5K",
+    liked: false,
   },
   {
     id: "2",
-    image: "https://picsum.photos/400/300?random=61",
-    likes: "1.1K",
-    type: "photo",
+    image: "https://picsum.photos/1080/1920?random=102",
+    user: "azaa_photo",
+    collab: "artUB",
+    avatar: "https://i.pravatar.cc/150?img=33",
+    caption: "Street photography in UB hits different at night 📸🌃",
+    music: "City Lights · Urban Mix",
+    likes: "845K",
+    comments: "3,211",
+    reposts: "28.4K",
+    shares: "156K",
+    saves: "12.8K",
+    liked: true,
   },
   {
     id: "3",
-    image: "https://picsum.photos/400/500?random=62",
-    likes: "856",
-    type: "reel",
-    duration: "0:32",
+    image: "https://picsum.photos/1080/1920?random=103",
+    user: "cooking_mn",
+    collab: "foodieUB",
+    avatar: "https://i.pravatar.cc/150?img=34",
+    caption: "Traditional buuz recipe passed down 3 generations 🥟🔥",
+    music: "Home Kitchen · Cozy Vibes",
+    likes: "1.2M",
+    comments: "8,902",
+    reposts: "45.1K",
+    shares: "320K",
+    saves: "89.2K",
+    liked: false,
   },
   {
     id: "4",
-    image: "https://picsum.photos/400/400?random=63",
-    likes: "3.7K",
-    type: "photo",
+    image: "https://picsum.photos/1080/1920?random=104",
+    user: "nomad_rider",
+    collab: "horselife",
+    avatar: "https://i.pravatar.cc/150?img=35",
+    caption: "Golden hour on the steppe 🐎🌅",
+    music: "Eternal Blue Sky · Morin Khuur",
+    likes: "3.1M",
+    comments: "12,400",
+    reposts: "98.3K",
+    shares: "1.2M",
+    saves: "67.4K",
+    liked: false,
   },
   {
     id: "5",
-    image: "https://picsum.photos/400/500?random=64",
-    likes: "945",
-    type: "reel",
-    duration: "1:05",
-  },
-  {
-    id: "6",
-    image: "https://picsum.photos/400/300?random=65",
-    likes: "2.1K",
-    type: "photo",
-  },
-  {
-    id: "7",
-    image: "https://picsum.photos/400/400?random=66",
-    likes: "678",
-    type: "photo",
-  },
-  {
-    id: "8",
-    image: "https://picsum.photos/400/500?random=67",
-    likes: "4.2K",
-    type: "reel",
-    duration: "0:45",
+    image: "https://picsum.photos/1080/1920?random=105",
+    user: "tuvshin_fit",
+    collab: "gymMN",
+    avatar: "https://i.pravatar.cc/150?img=36",
+    caption: "Morning workout routine that changed my life 💪🏋️",
+    music: "Beast Mode · Workout Beats",
+    likes: "567K",
+    comments: "2,100",
+    reposts: "15.6K",
+    shares: "89K",
+    saves: "24.1K",
+    liked: true,
   },
 ];
 
-const TRENDING = [
-  {
-    id: "t1",
-    user: "Travel Mongolia",
-    avatar: "https://i.pravatar.cc/150?img=20",
-    image: "https://picsum.photos/600/400?random=70",
-    caption: "Hidden gems in the Gobi Desert 🏜️",
-    likes: "5.6K",
-  },
-  {
-    id: "t2",
-    user: "Food UB",
-    avatar: "https://i.pravatar.cc/150?img=21",
-    image: "https://picsum.photos/600/400?random=71",
-    caption: "Best restaurants in Ulaanbaatar 🍜",
-    likes: "3.2K",
-  },
-];
-
-export default function ExploreScreen() {
-  const insets = useSafeAreaInsets();
-  const [activeCategory, setActiveCategory] = useState("all");
-
+function ActionButton({
+  icon,
+  label,
+  color = "#fff",
+  size = 28,
+  filled,
+}: {
+  icon: string;
+  label: string;
+  color?: string;
+  size?: number;
+  filled?: boolean;
+}) {
   return (
-    <View style={{ flex: 1, backgroundColor: "#f9fafb" }}>
-      {/* Header */}
-      <View
+    <TouchableOpacity style={{ alignItems: "center", marginBottom: 6 }}>
+      <Ionicons name={icon as any} size={size} color={color} />
+      <Text
         style={{
-          backgroundColor: "#fff",
-          paddingTop: insets.top + 6,
-          paddingHorizontal: 24,
-          paddingBottom: 20,
-          borderBottomWidth: 1,
-          borderBottomColor: "#f3f4f6",
+          color: "#fff",
+          fontSize: 12,
+          fontWeight: "600",
+          marginTop: 4,
+          textShadowColor: "rgba(0,0,0,0.5)",
+          textShadowOffset: { width: 0, height: 1 },
+          textShadowRadius: 3,
         }}
       >
-        <Text
-          style={{
-            fontSize: 28,
-            fontWeight: "bold",
-            color: "#111827",
-            letterSpacing: -0.5,
-            marginBottom: 18,
-          }}
-        >
-          Explore
-        </Text>
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+}
 
-        {/* Search Bar */}
-        <View
-          style={{
-            backgroundColor: "#f9fafb",
-            borderRadius: 14,
-            flexDirection: "row",
-            alignItems: "center",
-            paddingHorizontal: 14,
-            borderWidth: 1,
-            borderColor: "#f3f4f6",
-          }}
-        >
-          <Ionicons name="search-outline" size={18} color="#9ca3af" />
-          <TextInput
+function ReelItem({
+  reel,
+  isActive,
+}: {
+  reel: (typeof REELS)[0];
+  isActive: boolean;
+}) {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <View
+      style={{
+        width: SCREEN_WIDTH,
+        height: SCREEN_HEIGHT,
+        backgroundColor: "#000",
+      }}
+    >
+      {/* Background Image (simulating video) */}
+      <Image
+        source={{ uri: reel.image }}
+        style={{
+          position: "absolute",
+          width: "100%",
+          height: "100%",
+        }}
+        resizeMode="cover"
+      />
+
+      {/* Dark gradient overlay at bottom */}
+      <LinearGradient
+        colors={["transparent", "rgba(0,0,0,0.3)", "rgba(0,0,0,0.7)"]}
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: 350,
+        }}
+      />
+
+      {/* Right side action buttons */}
+      <View
+        style={{
+          position: "absolute",
+          right: 12,
+          bottom: 160,
+          alignItems: "center",
+          gap: 14,
+        }}
+      >
+        <ActionButton
+          icon={reel.liked ? "heart" : "heart-outline"}
+          label={reel.likes}
+          color={reel.liked ? "#ef4444" : "#fff"}
+        />
+        <ActionButton icon="chatbubble-outline" label={reel.comments} />
+        <ActionButton icon="repeat-outline" label={reel.reposts} size={26} />
+        <ActionButton icon="paper-plane-outline" label={reel.shares} />
+        <ActionButton icon="bookmark-outline" label={reel.saves} />
+
+        {/* Album art thumbnail */}
+        <TouchableOpacity style={{ marginTop: 6 }}>
+          <Image
+            source={{ uri: reel.avatar }}
             style={{
-              flex: 1,
-              paddingVertical: 12,
-              paddingHorizontal: 10,
-              fontSize: 14,
-              color: "#111827",
+              width: 34,
+              height: 34,
+              borderRadius: 8,
+              borderWidth: 2,
+              borderColor: "#fff",
             }}
-            placeholder="Search people, tags, places..."
-            placeholderTextColor="#9ca3af"
           />
-        </View>
+        </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={EXPLORE_ITEMS}
-        numColumns={2}
-        keyExtractor={(item) => item.id}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 24 }}
-        columnWrapperStyle={{
-          paddingHorizontal: 24,
-          gap: GRID_GAP,
-          marginBottom: GRID_GAP,
+      {/* Bottom info */}
+      <View
+        style={{
+          position: "absolute",
+          bottom: 100,
+          left: 14,
+          right: 70,
         }}
-        ListHeaderComponent={() => (
-          <>
-            {/* Categories */}
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{
-                paddingHorizontal: 24,
-                gap: 10,
-                paddingVertical: 16,
-              }}
-            >
-              {CATEGORIES.map((cat) => (
-                <TouchableOpacity
-                  key={cat.id}
-                  onPress={() => setActiveCategory(cat.id)}
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 6,
-                    paddingHorizontal: 16,
-                    paddingVertical: 10,
-                    borderRadius: 12,
-                    backgroundColor:
-                      activeCategory === cat.id ? "#4f46e5" : "#ffffff",
-                    borderWidth: 1,
-                    borderColor:
-                      activeCategory === cat.id ? "#4f46e5" : "#e5e7eb",
-                  }}
-                >
-                  <Ionicons
-                    name={cat.icon as any}
-                    size={16}
-                    color={activeCategory === cat.id ? "#fff" : "#6b7280"}
-                  />
-                  <Text
-                    style={{
-                      fontSize: 13,
-                      fontWeight: "600",
-                      color: activeCategory === cat.id ? "#fff" : "#374151",
-                    }}
-                  >
-                    {cat.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-
-            {/* Trending Section */}
-            <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
-              <Text
-                style={{
-                  fontSize: 18,
-                  fontWeight: "bold",
-                  color: "#111827",
-                  marginBottom: 14,
-                }}
-              >
-                Trending Now
-              </Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ gap: 14 }}
-              >
-                {TRENDING.map((item) => (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={{
-                      width: SCREEN_WIDTH * 0.7,
-                      borderRadius: 20,
-                      overflow: "hidden",
-                      backgroundColor: "#fff",
-                      borderWidth: 1,
-                      borderColor: "#f3f4f6",
-                    }}
-                  >
-                    <Image
-                      source={{ uri: item.image }}
-                      style={{ width: "100%", height: 180 }}
-                      resizeMode="cover"
-                    />
-                    <View style={{ padding: 14 }}>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          gap: 8,
-                          marginBottom: 6,
-                        }}
-                      >
-                        <Image
-                          source={{ uri: item.avatar }}
-                          style={{ width: 24, height: 24, borderRadius: 12 }}
-                        />
-                        <Text
-                          style={{
-                            fontSize: 13,
-                            fontWeight: "600",
-                            color: "#111827",
-                          }}
-                        >
-                          {item.user}
-                        </Text>
-                      </View>
-                      <Text
-                        style={{ fontSize: 13, color: "#6b7280" }}
-                        numberOfLines={1}
-                      >
-                        {item.caption}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-
-            {/* Grid title */}
-            <View
-              style={{
-                paddingHorizontal: 24,
-                marginBottom: 14,
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 18,
-                  fontWeight: "bold",
-                  color: "#111827",
-                }}
-              >
-                Discover
-              </Text>
-              <TouchableOpacity>
-                <Text
-                  style={{
-                    fontSize: 14,
-                    color: "#4f46e5",
-                    fontWeight: "500",
-                  }}
-                >
-                  See all
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </>
-        )}
-        renderItem={({ item, index }) => (
-          <TouchableOpacity
+      >
+        {/* Username + Follow */}
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            marginBottom: 10,
+          }}
+        >
+          <Image
+            source={{ uri: reel.avatar }}
             style={{
-              width: GRID_ITEM,
-              height: index % 3 === 0 ? GRID_ITEM * 1.3 : GRID_ITEM,
-              borderRadius: 16,
-              overflow: "hidden",
-              backgroundColor: "#e5e7eb",
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              borderWidth: 2,
+              borderColor: "#fff",
+              marginRight: 10,
+            }}
+          />
+          <Text
+            style={{
+              color: "#fff",
+              fontSize: 14,
+              fontWeight: "700",
+              textShadowColor: "rgba(0,0,0,0.6)",
+              textShadowOffset: { width: 0, height: 1 },
+              textShadowRadius: 3,
             }}
           >
-            <Image
-              source={{ uri: item.image }}
-              style={{ width: "100%", height: "100%" }}
-              resizeMode="cover"
-            />
-            {item.type === "reel" && (
-              <View
-                style={{
-                  position: "absolute",
-                  top: 10,
-                  right: 10,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  backgroundColor: "rgba(0,0,0,0.5)",
-                  paddingHorizontal: 8,
-                  paddingVertical: 4,
-                  borderRadius: 8,
-                  gap: 4,
-                }}
-              >
-                <Ionicons name="play" size={10} color="#fff" />
-                <Text
-                  style={{ color: "#fff", fontSize: 11, fontWeight: "600" }}
-                >
-                  {item.duration}
-                </Text>
-              </View>
-            )}
-            <View
+            {reel.user}
+          </Text>
+          {reel.collab && (
+            <Text
               style={{
-                position: "absolute",
-                bottom: 10,
-                left: 10,
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 4,
+                color: "#fff",
+                fontSize: 14,
+                fontWeight: "400",
+                textShadowColor: "rgba(0,0,0,0.6)",
+                textShadowOffset: { width: 0, height: 1 },
+                textShadowRadius: 3,
               }}
             >
-              <Ionicons name="heart" size={12} color="#fff" />
-              <Text
-                style={{
-                  color: "#fff",
-                  fontSize: 12,
-                  fontWeight: "bold",
-                  textShadowColor: "rgba(0,0,0,0.5)",
-                  textShadowOffset: { width: 0, height: 1 },
-                  textShadowRadius: 3,
-                }}
-              >
-                {item.likes}
-              </Text>
-            </View>
+              {" "}and{" "}
+              <Text style={{ fontWeight: "700" }}>{reel.collab}</Text>
+            </Text>
+          )}
+          <TouchableOpacity
+            style={{
+              marginLeft: 12,
+              borderWidth: 1.5,
+              borderColor: "#fff",
+              borderRadius: 8,
+              paddingHorizontal: 14,
+              paddingVertical: 5,
+            }}
+          >
+            <Text
+              style={{
+                color: "#fff",
+                fontSize: 13,
+                fontWeight: "700",
+              }}
+            >
+              Follow
+            </Text>
           </TouchableOpacity>
+        </View>
+
+        {/* Caption */}
+        <Text
+          style={{
+            color: "#fff",
+            fontSize: 13.5,
+            fontWeight: "500",
+            lineHeight: 19,
+            textShadowColor: "rgba(0,0,0,0.6)",
+            textShadowOffset: { width: 0, height: 1 },
+            textShadowRadius: 3,
+            marginBottom: 10,
+          }}
+          numberOfLines={2}
+        >
+          {reel.caption}
+        </Text>
+
+        {/* Music */}
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <Ionicons name="musical-note" size={13} color="#fff" />
+          <Text
+            style={{
+              color: "#fff",
+              fontSize: 12.5,
+              fontWeight: "500",
+              textShadowColor: "rgba(0,0,0,0.6)",
+              textShadowOffset: { width: 0, height: 1 },
+              textShadowRadius: 3,
+            }}
+            numberOfLines={1}
+          >
+            {reel.music}
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+export default function ReelsScreen() {
+  const insets = useSafeAreaInsets();
+  const [activeTab, setActiveTab] = useState<"reels" | "friends">("reels");
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const onViewableItemsChanged = useRef(
+    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+      if (viewableItems.length > 0 && viewableItems[0].index !== null) {
+        setActiveIndex(viewableItems[0].index);
+      }
+    }
+  ).current;
+
+  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 60 }).current;
+
+  return (
+    <View style={{ flex: 1, backgroundColor: "#000" }}>
+      <StatusBar barStyle="light-content" />
+
+      {/* Full-screen Reels FlatList */}
+      <FlatList
+        data={REELS}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item, index }) => (
+          <ReelItem reel={item} isActive={index === activeIndex} />
         )}
+        pagingEnabled
+        showsVerticalScrollIndicator={false}
+        snapToInterval={SCREEN_HEIGHT}
+        decelerationRate="fast"
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
+        getItemLayout={(_, index) => ({
+          length: SCREEN_HEIGHT,
+          offset: SCREEN_HEIGHT * index,
+          index,
+        })}
       />
+
+      {/* Top Header Overlay */}
+      <View
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          paddingTop: insets.top + 8,
+          paddingHorizontal: 16,
+          paddingBottom: 12,
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        {/* Left: Create */}
+        <TouchableOpacity>
+          <Ionicons name="add" size={28} color="#fff" />
+        </TouchableOpacity>
+
+        {/* Center: Tabs */}
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 20 }}>
+          <TouchableOpacity onPress={() => setActiveTab("reels")}>
+            <Text
+              style={{
+                fontSize: 17,
+                fontWeight: activeTab === "reels" ? "800" : "600",
+                color: "#fff",
+                opacity: activeTab === "reels" ? 1 : 0.6,
+                textShadowColor: "rgba(0,0,0,0.5)",
+                textShadowOffset: { width: 0, height: 1 },
+                textShadowRadius: 3,
+              }}
+            >
+              Reels
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setActiveTab("friends")}>
+            <Text
+              style={{
+                fontSize: 17,
+                fontWeight: activeTab === "friends" ? "800" : "600",
+                color: "#fff",
+                opacity: activeTab === "friends" ? 1 : 0.6,
+                textShadowColor: "rgba(0,0,0,0.5)",
+                textShadowOffset: { width: 0, height: 1 },
+                textShadowRadius: 3,
+              }}
+            >
+              Friends 🍻🍻
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Right: Settings */}
+        <TouchableOpacity>
+          <Ionicons name="options-outline" size={24} color="#fff" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }

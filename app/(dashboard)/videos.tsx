@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRef, useState } from "react";
 import {
   Dimensions,
@@ -11,7 +12,6 @@ import {
   ViewToken,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -252,8 +252,8 @@ function ReelItem({
                 textShadowRadius: 3,
               }}
             >
-              {" "}and{" "}
-              <Text style={{ fontWeight: "700" }}>{reel.collab}</Text>
+              {" "}
+              and <Text style={{ fontWeight: "700" }}>{reel.collab}</Text>
             </Text>
           )}
           <TouchableOpacity
@@ -327,7 +327,7 @@ export default function ReelsScreen() {
       if (viewableItems.length > 0 && viewableItems[0].index !== null) {
         setActiveIndex(viewableItems[0].index);
       }
-    }
+    },
   ).current;
 
   const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 60 }).current;

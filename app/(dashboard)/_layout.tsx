@@ -22,7 +22,7 @@ const DashboardTabs = withLayoutContext<
 
 export default function DashboardLayout() {
   const insets = useSafeAreaInsets();
-  const bottomInset = Math.max(insets.bottom, Platform.OS === "ios" ? 14 : 8);
+  const bottomInset = Math.max(insets.bottom, Platform.OS === "ios" ? 12 : 2);
   const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
@@ -64,24 +64,28 @@ export default function DashboardLayout() {
 
   return (
     <DashboardTabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: "#4f46e5",
-        tabBarInactiveTintColor: "#9ca3af",
-        tabBarShowLabel: false,
-        tabBarItemStyle: {
-          flex: 1,
-        },
-        tabBarStyle: {
-          backgroundColor: "#ffffff",
-          borderTopWidth: 1,
-          borderTopColor: "#f3f4f6",
-          height: 52 + bottomInset,
-          paddingTop: 6,
-          paddingBottom: bottomInset,
-          elevation: 0,
-          shadowOpacity: 0,
-        },
+      screenOptions={({ route }) => {
+        const isReelsTab = route.name === "videos";
+
+        return {
+          headerShown: false,
+          tabBarActiveTintColor: isReelsTab ? "#ffffff" : "#4f46e5",
+          tabBarInactiveTintColor: isReelsTab ? "rgba(255,255,255,0.7)" : "#9ca3af",
+          tabBarShowLabel: false,
+          tabBarItemStyle: {
+            flex: 1,
+          },
+          tabBarStyle: {
+            backgroundColor: isReelsTab ? "#050814" : "#ffffff",
+            borderTopWidth: 1,
+            borderTopColor: isReelsTab ? "rgba(255,255,255,0.16)" : "#f3f4f6",
+            height: (isReelsTab ? 50 : 52) + bottomInset,
+            paddingTop: isReelsTab ? 4 : 6,
+            paddingBottom: bottomInset,
+            elevation: 0,
+            shadowOpacity: 0,
+          },
+        };
       }}
     >
       <DashboardTabs.Screen
@@ -111,27 +115,17 @@ export default function DashboardLayout() {
         }}
       />
       <DashboardTabs.Screen
-        name="friends"
+        name="messages"
         options={{
-          title: "Create",
-          tabBarIcon: () => (
-            <View
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 14,
-                backgroundColor: "#4f46e5",
-                justifyContent: "center",
-                alignItems: "center",
-                shadowColor: "#4f46e5",
-                shadowOffset: { width: 0, height: 3 },
-                shadowOpacity: 0.25,
-                shadowRadius: 6,
-                elevation: 4,
-              }}
-            >
-              <Ionicons name="add" size={24} color="#ffffff" />
-            </View>
+          title: "Messages",
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={
+                focused ? "chatbubble-ellipses" : "chatbubble-ellipses-outline"
+              }
+              size={22}
+              color={color}
+            />
           ),
         }}
       />

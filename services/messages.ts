@@ -1,5 +1,5 @@
 import { BASE_URL, getValidToken, type ApiResponse } from "./config";
-import type { SearchUserResult, PublicUserProfile } from "./users";
+import type { PublicUserProfile, SearchUserResult } from "./users";
 
 // ─── Types ──────────────────────────────────────────────────────────────
 export interface ChatMessage {

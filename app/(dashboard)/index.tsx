@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
+import { router } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -22,9 +23,8 @@ import {
 } from "../../services/api";
 
 import ChatModal from "../../components/dashboard/ChatModal";
-import ConversationsModal from "../../components/dashboard/ConversationsModal";
 import Header from "../../components/dashboard/Header";
-import PostCard, { CreatePostBar } from "../../components/dashboard/PostCard";
+import PostCard from "../../components/dashboard/PostCard";
 import SearchModal from "../../components/dashboard/SearchModal";
 import StoriesSection from "../../components/dashboard/StoriesSection";
 import StoryViewerModal from "../../components/dashboard/StoryViewerModal";
@@ -48,7 +48,7 @@ export default function HomeScreen() {
     name: string;
     avatar: string;
   } | null>(null);
-  const [convosVisible, setConvosVisible] = useState(false);
+
 
   const loadData = async () => {
     const [postsResult, storiesResult] = await Promise.all([
@@ -185,7 +185,6 @@ export default function HomeScreen() {
           onCreateStory={handleCreateStory}
           onViewStory={(group) => setViewingStory(group)}
         />
-        <CreatePostBar avatarUrl={userAvatar} userName={userName} />
       </>
     ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -207,7 +206,7 @@ export default function HomeScreen() {
           avatarUrl={userAvatar}
           userName={userName}
           onSearchPress={() => setSearchVisible(true)}
-          onChatPress={() => setConvosVisible(true)}
+          onCreatePress={() => router.push("/create-reel")}
         />
         <ActivityIndicator size="large" color="#4f46e5" />
         <Text style={{ marginTop: 12, color: "#9ca3af", fontSize: 14 }}>
@@ -224,7 +223,7 @@ export default function HomeScreen() {
         avatarUrl={userAvatar}
         userName={userName}
         onSearchPress={() => setSearchVisible(true)}
-        onChatPress={() => setConvosVisible(true)}
+        onCreatePress={() => router.push("/create-reel")}
       />
 
       {/* Creating story indicator */}
@@ -322,17 +321,6 @@ export default function HomeScreen() {
         onMessage={(uid, name, avatar) => {
           setProfileUserId(null);
           setChatTarget({ userId: uid, name, avatar });
-        }}
-      />
-
-      {/* Conversations Modal */}
-      <ConversationsModal
-        visible={convosVisible}
-        currentUserId={currentUserId}
-        onClose={() => setConvosVisible(false)}
-        onOpenChat={(userId, name, avatar) => {
-          setConvosVisible(false);
-          setChatTarget({ userId, name, avatar });
         }}
       />
 

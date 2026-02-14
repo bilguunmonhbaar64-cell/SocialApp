@@ -1,10 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import {
-  BASE_URL,
-  getValidToken,
-  saveAuth,
-  type ApiResponse,
-} from "./config";
+import { BASE_URL, getValidToken, saveAuth, type ApiResponse } from "./config";
 
 const USER_KEY = "auth_user";
 

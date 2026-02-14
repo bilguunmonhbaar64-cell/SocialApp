@@ -21,6 +21,10 @@ export default function RootLayout() {
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="(dashboard)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="create-reel"
+          options={{ headerShown: false, presentation: "modal" }}
+        />
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>

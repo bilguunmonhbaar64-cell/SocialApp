@@ -3,57 +3,57 @@
 
 // Config, token helpers & shared types
 export {
-  saveAuth,
+  clearAuth,
   getToken,
   getUser,
-  clearAuth,
   getValidToken,
+  saveAuth,
   type ApiResponse,
-  type PostAuthor,
   type Comment,
   type Post,
+  type PostAuthor,
 } from "./config";
 
 // Auth & profile management
 export {
-  registerUser,
-  loginUser,
-  getMe,
-  updateProfile,
   changePassword,
   deleteAccount,
+  getMe,
+  loginUser,
+  registerUser,
+  updateProfile,
   type UserProfile,
 } from "./auth";
 
 // Posts
 export {
-  fetchPosts,
-  createPost,
-  toggleLike,
   addComment,
+  createPost,
   deletePost,
+  fetchPosts,
   seedPosts,
+  toggleLike,
 } from "./posts";
 
 // Stories
 export {
-  fetchStories,
   createStory,
-  viewStory,
   deleteStory,
-  type StoryItem,
+  fetchStories,
+  viewStory,
   type StoryGroup,
+  type StoryItem,
 } from "./stories";
 
 // Users, search & follow
 export {
-  searchUsers,
-  getUserProfile,
-  toggleFollow,
   getFollowersList,
   getFollowingList,
-  type SearchUserResult,
+  getUserProfile,
+  searchUsers,
+  toggleFollow,
   type PublicUserProfile,
+  type SearchUserResult,
   type UserProfileResponse,
 } from "./users";
 
@@ -65,3 +65,27 @@ export {
   type ChatMessage,
   type ConversationItem,
 } from "./messages";
+
+// Reels
+export {
+  completeReelUpload,
+  deleteReel,
+  fetchMyReels,
+  fetchReels,
+  initiateReelUpload,
+  markReelFailed,
+  markReelReady,
+  uploadReelVideoLocal,
+  seedReels,
+  toggleReelLike,
+  toggleReelSave,
+  updateReel,
+  viewReel,
+  type Reel,
+  type ReelStatus,
+  type ReelTab,
+  type ReelUploadInitPayload,
+  type ReelUploadInitResponse,
+  type ReelVisibility,
+  type ReelLocalUploadPayload,
+} from "./reels";

@@ -6,12 +6,12 @@ export default function Header({
   avatarUrl,
   userName,
   onSearchPress,
-  onChatPress,
+  onCreatePress,
 }: {
   avatarUrl: string;
   userName: string;
   onSearchPress: () => void;
-  onChatPress: () => void;
+  onCreatePress: () => void;
 }) {
   const insets = useSafeAreaInsets();
 
@@ -61,7 +61,7 @@ export default function Header({
             <Ionicons name="search-outline" size={20} color="#6b7280" />
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={onChatPress}
+            onPress={onCreatePress}
             style={{
               width: 42,
               height: 42,
@@ -72,23 +72,9 @@ export default function Header({
             }}
           >
             <Ionicons
-              name="chatbubble-ellipses-outline"
-              size={20}
+              name="add-circle-outline"
+              size={22}
               color="#6b7280"
-            />
-
-            <View
-              style={{
-                position: "absolute",
-                top: 8,
-                right: 8,
-                width: 8,
-                height: 8,
-                borderRadius: 4,
-                backgroundColor: "#ef4444",
-                borderWidth: 1.5,
-                borderColor: "#fff",
-              }}
             />
           </TouchableOpacity>
         </View>
